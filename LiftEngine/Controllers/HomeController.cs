@@ -10,7 +10,8 @@ namespace LiftEngine.Controllers
     {
         public ActionResult Index()
         {
-            return View();
+            var lift = System.Web.HttpContext.Current.Application["Lift"];
+            return View(lift);
         }
 
         public ActionResult About()
