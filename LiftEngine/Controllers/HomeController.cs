@@ -13,19 +13,5 @@ namespace LiftEngine.Controllers
             var lift = System.Web.HttpContext.Current.Application["Lift"];
             return View(lift);
         }
-
-        public ActionResult About()
-        {
-            ViewBag.Message = "Your application description page.";
-
-            return View();
-        }
-
-        public ActionResult Contact()
-        {
-            ViewBag.Message = "Your contact page.";
-
-            return View();
-        }
     }
 }

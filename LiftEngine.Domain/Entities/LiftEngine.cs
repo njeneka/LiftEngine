@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LiftEngine.Domain
+namespace LiftEngine.Domain.Entities
 {
     public class Lift
     {
@@ -14,7 +14,7 @@ namespace LiftEngine.Domain
 
         public List<Level> Levels { get; }
         public List<int> Stops { get; }
-        public int CurrentLevel { get; }
-        public bool DoorsOpen { get; }
+        public int CurrentLevel { get; set; }
+        public bool DoorsOpen { get; set; }
     }
 }

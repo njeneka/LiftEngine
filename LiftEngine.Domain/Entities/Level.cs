@@ -1,4 +1,4 @@
-﻿namespace LiftEngine.Domain
+﻿namespace LiftEngine.Domain.Entities
 {
     public class Level
     {
@@ -11,8 +11,8 @@
         }
 
         public string Name { get; }
-        public bool SummonedUp { get; }
-        public bool SummonedDown { get; }
-        public bool Depart { get; }
+        public bool SummonedUp { get; set; }
+        public bool SummonedDown { get; set; }
+        public bool Depart { get; set; }
     }
 }

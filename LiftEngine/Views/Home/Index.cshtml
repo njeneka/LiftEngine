@@ -1,5 +1,15 @@
-﻿@model LiftEngine.Domain.Lift
+﻿@model LiftEngine.Domain.Entities.Lift
 @{
-    ViewBag.Title = "Home Page";
+    ViewBag.Title = "Lift";
 }
-<div>@Model.Levels[0].Name</div>
+
+@Html.React("Lift", new
+{
+    api=Url.HttpRouteUrl("DefaultApi", new {controller="Lift"}),
+    apiStops=Url.HttpRouteUrl("ApiChild", new {controller="Lift", child="Stops"})
+}, clientOnly: true) 
+
+@section scripts{
+    @Scripts.Render("~/bundles/liftjsx")
+    @Html.ReactInitJavaScript()
+}
