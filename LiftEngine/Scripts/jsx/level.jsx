@@ -1,37 +1,39 @@
 ﻿var Level = React.createClass({
 
     handleUp: function() {
-        this.props.addStopFunc(this.props.levelNumber, 1);
+        this.props.addStopFunc(this.props.levelNumber, directionEnum.Up);
     },
 
     handleDown: function() {
-        this.props.addStopFunc(this.props.levelNumber, -1);
+        this.props.addStopFunc(this.props.levelNumber, directionEnum.Down);
     },
     
     render: function() {
         var level = this.props.data;
         return (
-            <tr>
-                <td>         
+            <tr className="level">
+                <td>     
+                    <div className="summons">
                     {this.props.allowUp === true &&       
                     (<div>
-                        <input type="button" 
-                               onClick={this.handleUp}
-                               className="btn btn-primary" 
-                               value="Up" 
-                               disabled={level.SummonedUp}/>
+                        <button onClick={this.handleUp}
+                                className="btn btn-primary" 
+                                disabled={level.SummonedUp}>
+                            <span className="glyphicon glyphicon-chevron-up"/>
+                        </button>
                     </div>)}
 
                     {this.props.allowDown === true &&
                     (<div>
-                        <input type="button" 
-                               onClick={this.handleDown}
-                               className="btn btn-primary" 
-                               value="Down" 
-                               disabled={level.SummonedDown}/>
+                        <button onClick={this.handleDown}
+                                className="btn btn-primary" 
+                                disabled={level.SummonedDown}>
+                             <span className="glyphicon glyphicon-chevron-down"/>
+                         </button>
                     </div>)}
+                    </div>
                 </td>
-                <td className="level">{level.Name}</td>
+                <td ><div className="level-name">{level.Name}</div></td>
             </tr>);
     }
 })

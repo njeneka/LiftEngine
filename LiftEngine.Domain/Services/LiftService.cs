@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using LiftEngine.Domain.Entities;
+using LiftEngine.Domain.Enums;
 using LiftEngine.Domain.Models;
 
 namespace LiftEngine.Domain.Services
@@ -16,17 +14,29 @@ namespace LiftEngine.Domain.Services
             Lift = lift;
         }
 
-        public void AddStop(StopModel stop)
+        public void Initialise(bool doorsOpen = false, int currentLevel = 0)
         {
-            if (stop.Level < 0 || stop.Level > Lift.Levels.Count - 1)
+            Lift.DoorsOpen = doorsOpen;
+            if (currentLevel >= Lift.Levels.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(currentLevel), "Not a valid level");
+            }
+            Lift.CurrentLevel = currentLevel;
+        }
+
+        public void RequestStop(StopModel stop)
+        {
+            // you should travel to a stop before requesting a stop to disembark (direction == Any)
+            // as the disembark request is assumed to be from someone already in the lift
+            if (stop.Level < 0 || stop.Level > Lift.Levels.Length - 1)
             {
                 throw new InvalidOperationException("Invalid Stop");
             }
-            if (stop.Level == 0 && stop.Direction == -1)
+            if (stop.Level == 0 && stop.Direction == DirectionEnum.Down)
             {
                 throw new InvalidOperationException("Invalid Summons.  Cannot go down from lowest level");
             }
-            if (stop.Level == Lift.Levels.Count-1 && stop.Direction == 1)
+            if (stop.Level == Lift.Levels.Length - 1 && stop.Direction == DirectionEnum.Up)
             {
                 throw new InvalidOperationException("Invalid Summons.  Cannot go up from highest level");
             }
@@ -41,38 +51,72 @@ namespace LiftEngine.Domain.Services
             if (Lift.Stops.Count == 0)
             {
                 // nothing in the queue - just add it
-                Lift.Stops.Add(stop.Level);
+                AcceptStop(0, stop);
+                return;
+            }
+
+            if (Lift.Stops.Contains(stop))
+            {
+                // ignore the stop if we are already stopping there
                 return;
             }
 
             // insert the stop if we are going past in the right direction
-            // or no direction (someone is disembarking)
+            // or any direction (someone is disembarking)
             // otherwise add it to the end of the queue
 
             // insert as the first stop if possible
             if (StopBetween(stop, Lift.CurrentLevel, Lift.Stops[0]))
             {
-                Lift.Stops.Insert(0, stop.Level);
+                AcceptStop(0, stop);
                 return;
             }
 
             for (var i = 0; i < Lift.Stops.Count - 1; i++)
             {
-                if (StopBetween(stop, Lift.Stops[i], Lift.Stops[i+1]))
+                if (StopBetween(stop, Lift.Stops[i].Level, Lift.Stops[i+1]))
                 {
-                    Lift.Stops.Insert(i, stop.Level);
+                    AcceptStop(i, stop);
                     return;
                 }
             }
-            Lift.Stops.Add(stop.Level);
+            AcceptStop(Lift.Stops.Count, stop);
         }
 
-        private bool StopBetween(StopModel stop, int levelA, int levelB)
+        private bool StopBetween(StopModel stop, int startLevel, StopModel nextStop)
         {
-            // returns whether the stop is on the way in the same direction as levelA -> levelB
+            // returns whether the stop should be inserted to separate up and down requests from the same floor
+            // or the stop is on the way in the same direction as startLevel -> next stop
             // or the direction doesn't matter because the person is disembarking
-            return (levelA < stop.Level && stop.Level < levelB && stop.Direction != -1) ||
-                   (levelA > stop.Level && stop.Level > levelB && stop.Direction != 1);
+            return (startLevel == nextStop.Level) ||
+                (startLevel < stop.Level && stop.Level < nextStop.Level && stop.Direction != DirectionEnum.Down) ||
+                (startLevel > stop.Level && stop.Level > nextStop.Level && stop.Direction != DirectionEnum.Up);
+        }
+
+        private void AcceptStop(int position, StopModel stop)
+        {
+            if (position == Lift.Stops.Count)
+            {
+                Lift.Stops.Add(stop);
+            }
+            else
+            {
+                Lift.Stops.Insert(position, stop);
+            }
+
+            var level = Lift.Levels[stop.Level];
+            switch (stop.Direction)
+            {
+                case DirectionEnum.Up:
+                    level.SummonedUp = true;
+                    break;
+                case DirectionEnum.Down:
+                    level.SummonedDown = true;
+                    break;
+                default:
+                    level.RequestDisembark= true;
+                    break;
+            }
         }
 
         public void Travel()
@@ -86,19 +130,22 @@ namespace LiftEngine.Domain.Services
                 return;
             }
 
-            // move to the next stop
-            Lift.CurrentLevel = Lift.Stops[0];
+            // move to the first stop
+            Lift.CurrentLevel = Lift.Stops[0].Level;
             var level = Lift.Levels[Lift.CurrentLevel];
+            Lift.StopHistory.Enqueue(Lift.CurrentLevel);
+
             // remove requests to stop here depending on direction
             // and open the doors
+            var currentStop = Lift.Stops[0];
             Lift.Stops.RemoveAt(0);
 
-            level.Depart = false;
-            if (Lift.Stops[0] > Lift.CurrentLevel)
+            level.RequestDisembark = false;
+            if (currentStop.Direction == DirectionEnum.Up)
             {
                 level.SummonedUp = false;
             }
-            else
+            if (currentStop.Direction == DirectionEnum.Down)
             {
                 level.SummonedDown = false;
             }

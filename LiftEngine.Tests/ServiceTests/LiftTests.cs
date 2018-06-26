@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Web.ApplicationServices;
-using LiftEngine.Domain.Entities;
+using System.Linq;
+using LiftEngine.Domain.Enums;
 using LiftEngine.Domain.Models;
 using LiftEngine.Domain.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -16,19 +16,7 @@ namespace LiftEngine.Tests.ServiceTests
         [TestInitialize]
         public void Setup()
         {
-            var lift = new Lift(new List<Level>
-            {
-                new Level("G"),
-                new Level("L1"),
-                new Level("L2"),
-                new Level("L3"),
-                new Level("L4"),
-                new Level("L5"),
-                new Level("L6"),
-                new Level("L7"),
-                new Level("L8"),
-                new Level("L9"),
-            });
+            var lift = new Lift(10);
 
             _liftService = new LiftService(lift);
         }
@@ -36,7 +24,7 @@ namespace LiftEngine.Tests.ServiceTests
         [TestMethod]
         public void SummonsToCurrentLevel()
         {
-            _liftService.AddStop(new StopModel(_liftService.Lift.CurrentLevel, 1));
+            _liftService.RequestStop(new StopModel(_liftService.Lift.CurrentLevel, DirectionEnum.Up));
             Assert.AreEqual(_liftService.Lift.Stops.Count, 0, "Should not add a stop if already on the specified level");
         }
 
@@ -44,48 +32,61 @@ namespace LiftEngine.Tests.ServiceTests
         [ExpectedException(typeof(InvalidOperationException))]
         public void SummonsDownFromLowestLevel()
         {
-            _liftService.AddStop(new StopModel(0, -1));
+            _liftService.RequestStop(new StopModel(0, DirectionEnum.Down));
         }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void SummonsUpFromHighestLevel()
         {
-            _liftService.AddStop(new StopModel(9, 1));
+            _liftService.RequestStop(new StopModel(9, DirectionEnum.Up));
         }
 
         [TestMethod]
         [ExpectedException(typeof(InvalidOperationException))]
         public void SummonsFromInvalidLevel()
         {
-            _liftService.AddStop(new StopModel(-1, 1));
+            _liftService.RequestStop(new StopModel(-1, DirectionEnum.Up));
         }
 
         [TestMethod]
         public void SingleTripFromCurrentLevelUp()
         {
-            //SummonsToGroundAndGoTo5
-            _liftService.AddStop(new StopModel(0, 1));
+            // Summons to ground, go to 5
+            _liftService.RequestStop(new StopModel(0, DirectionEnum.Up));
             _liftService.Travel();
-            _liftService.AddStop(new StopModel(4, 0));
-            Assert.IsTrue(_liftService.Lift.CurrentLevel == 0 &&
-                _liftService.Lift.Stops.Count == 1 &&
-                _liftService.Lift.Stops[0] == 4, "Failed to process Ground to L5");
+            _liftService.RequestStop(new StopModel(5, DirectionEnum.Any));
+            _liftService.Travel();
+
+            var expectedStopHistory = new Queue<int>();
+            expectedStopHistory.Enqueue(5);
+
+            Assert.IsTrue(_liftService.Lift.CurrentLevel == 5 &&
+                _liftService.Lift.Stops.Count == 0 &&
+                _liftService.Lift.StopHistory.SequenceEqual(expectedStopHistory), "Failed to process Ground to Level 5");
         }
 
         [TestMethod]
-        public void TwoTripsBothDown()
+        public void TwoTripsToSameLevel()
         {
-            _liftService.AddStop(new StopModel(6, -1));
-            _liftService.AddStop(new StopModel(1, 0 ));
-            _liftService.AddStop(new StopModel(4, -1));
-            _liftService.AddStop(new StopModel(1, 0));
+            _liftService.RequestStop(new StopModel(6, DirectionEnum.Down));
+            _liftService.RequestStop(new StopModel(4, DirectionEnum.Down));
             _liftService.Travel();
-            _liftService.AddStop(new StopModel(4, 0));
-            Assert.IsTrue(_liftService.Lift.CurrentLevel == 0 &&
-                          _liftService.Lift.Stops.Count == 1 &&
-                          _liftService.Lift.Stops[0] == 4, "Failed to process Ground to L5");
+            _liftService.RequestStop(new StopModel(1, DirectionEnum.Any));
+            _liftService.Travel();
+            _liftService.RequestStop(new StopModel(1, DirectionEnum.Any));
+            _liftService.Travel();
+
+            var expectedStopHistory = new Queue<int>();
+            expectedStopHistory.Enqueue(6);
+            expectedStopHistory.Enqueue(4);
+            expectedStopHistory.Enqueue(1);
+
+            Assert.IsTrue(_liftService.Lift.StopHistory.SequenceEqual(expectedStopHistory),
+                "Failed to process L6 to L1 + L4 to L1");
         }
+
+
 
     }
 }

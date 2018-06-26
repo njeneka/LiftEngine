@@ -23,6 +23,30 @@ textarea {
     max-width: 280px;
 }
 
+/* Bootstrap overrides*/
+.btn-primary {
+    background: #000000;
+    padding: 4px 7px;
+    border-style: none;
+}
+.btn-primary:hover {
+    background: gray
+}
+
+/* Site specific*/
+.body-content {
+    padding-top: 60px;
+}
+
 .level {
+    height: 50px;
+    border-style: solid;
+    border-left-width: 0px;
+    border-right-width: 0px;
+}
+
+.level-name {
+    text-align: center;
+    padding: 10px 40px;
     font-size: 40px;
 }

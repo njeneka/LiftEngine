@@ -60,7 +60,15 @@
 
     render: function () {
         return (this.state.loaded === true
-            ? <table>{this.renderLevels()}</table>
+            ? <table>
+                <thead>
+                    <tr>
+                        <td className="col-sm-6"></td>
+                        <td className="col-sm-6"></td>
+                    </tr>
+                </thead>
+                <tbody>{this.renderLevels()}</tbody>
+            </table>
             : <div>"Loading...."</div>);
     }
 })

@@ -32,6 +32,9 @@ namespace LiftEngine
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));
 
+            bundles.Add(new ScriptBundle("~/bundles/site").Include(
+                "~/Scripts/Site/types.js"));
+
             bundles.Add(new BabelBundle("~/bundles/liftjsx")
                 .Include("~/Scripts/jsx/lift.jsx")
                 .Include("~/Scripts/jsx/level.jsx"));

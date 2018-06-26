@@ -40,8 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Entities\Level.cs" />
-    <Compile Include="Entities\LiftEngine.cs" />
+    <Compile Include="Models\Level.cs" />
+    <Compile Include="Models\Lift.cs" />
+    <Compile Include="Enums\DirectionEnum.cs" />
     <Compile Include="Models\StopModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\LiftService.cs" />

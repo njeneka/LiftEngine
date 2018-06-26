@@ -1,4 +1,6 @@
-﻿namespace LiftEngine.Domain.Models
+﻿using LiftEngine.Domain.Enums;
+
+namespace LiftEngine.Domain.Models
 {
     public class StopModel
     {
@@ -6,13 +8,14 @@
         {
         }
 
-        public StopModel(int level, int direction)
+        public StopModel(int level, DirectionEnum direction)
         {
             Level = level;
             Direction = direction;
         }
 
         public int Level { get; set; }
-        public int Direction { get; set; }
+        public DirectionEnum Direction { get; set; }
+
     }
 }

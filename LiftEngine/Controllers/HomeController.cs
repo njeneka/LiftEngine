@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
+﻿using System.Web.Mvc;
 
 namespace LiftEngine.Controllers
 {
@@ -10,8 +6,7 @@ namespace LiftEngine.Controllers
     {
         public ActionResult Index()
         {
-            var lift = System.Web.HttpContext.Current.Application["Lift"];
-            return View(lift);
+            return View();
         }
     }
 }

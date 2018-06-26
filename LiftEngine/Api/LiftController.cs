@@ -1,6 +1,5 @@
 ﻿using System.Web;
 using System.Web.Http;
-using LiftEngine.Domain.Entities;
 using LiftEngine.Domain.Models;
 using LiftEngine.Domain.Services;
 
@@ -18,11 +17,11 @@ namespace LiftEngine.Api
 
         [HttpPost]
         [Route("stops")]
-        public IHttpActionResult AddStop(StopModel model)
+        public IHttpActionResult RequestStop(StopModel model)
         {
             var lift = HttpContext.Current.Application["Lift"];
             var liftService = new LiftService((Lift)lift);
-            liftService.AddStop(model);
+            liftService.RequestStop(model);
 
             HttpContext.Current.Application["Lift"] = liftService.Lift;
             return Ok();
