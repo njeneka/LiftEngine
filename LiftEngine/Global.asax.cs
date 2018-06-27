@@ -17,7 +17,7 @@ namespace LiftEngine
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
 
-            HttpContext.Current.Application["Lift"] = new Lift(10);
+            HttpContext.Current.Application["Lift"] = new Lift(11);
         }
     }
 }

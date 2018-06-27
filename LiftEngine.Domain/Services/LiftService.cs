@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using LiftEngine.Domain.Enums;
 using LiftEngine.Domain.Models;
 
@@ -48,109 +49,138 @@ namespace LiftEngine.Domain.Services
                 return;
             }
 
-            if (Lift.Stops.Count == 0)
-            {
-                // nothing in the queue - just add it
-                AcceptStop(0, stop);
-                return;
-            }
-
-            if (Lift.Stops.Contains(stop))
-            {
-                // ignore the stop if we are already stopping there
-                return;
-            }
-
-            // insert the stop if we are going past in the right direction
-            // or any direction (someone is disembarking)
-            // otherwise add it to the end of the queue
-
-            // insert as the first stop if possible
-            if (StopBetween(stop, Lift.CurrentLevel, Lift.Stops[0]))
-            {
-                AcceptStop(0, stop);
-                return;
-            }
-
-            for (var i = 0; i < Lift.Stops.Count - 1; i++)
-            {
-                if (StopBetween(stop, Lift.Stops[i].Level, Lift.Stops[i+1]))
-                {
-                    AcceptStop(i, stop);
-                    return;
-                }
-            }
-            AcceptStop(Lift.Stops.Count, stop);
+            AcceptStop(stop);
         }
 
-        private bool StopBetween(StopModel stop, int startLevel, StopModel nextStop)
+        private void AcceptStop(StopModel stop)
         {
-            // returns whether the stop should be inserted to separate up and down requests from the same floor
-            // or the stop is on the way in the same direction as startLevel -> next stop
-            // or the direction doesn't matter because the person is disembarking
-            return (startLevel == nextStop.Level) ||
-                (startLevel < stop.Level && stop.Level < nextStop.Level && stop.Direction != DirectionEnum.Down) ||
-                (startLevel > stop.Level && stop.Level > nextStop.Level && stop.Direction != DirectionEnum.Up);
-        }
-
-        private void AcceptStop(int position, StopModel stop)
-        {
-            if (position == Lift.Stops.Count)
-            {
-                Lift.Stops.Add(stop);
-            }
-            else
-            {
-                Lift.Stops.Insert(position, stop);
-            }
-
-            var level = Lift.Levels[stop.Level];
             switch (stop.Direction)
             {
                 case DirectionEnum.Up:
-                    level.SummonedUp = true;
+                    Lift.SummonsUp.Add(stop.Level);
                     break;
                 case DirectionEnum.Down:
-                    level.SummonedDown = true;
+                    Lift.SummonsDown.Add(stop.Level);
                     break;
+                case DirectionEnum.Any:
                 default:
-                    level.RequestDisembark= true;
+                    Lift.Disembark.Add(stop.Level);
                     break;
+            }
+            if (Lift.CurrentDirection == DirectionEnum.Any)
+            {
+                // first request - set our direction
+                Lift.CurrentDirection = stop.Level > Lift.CurrentLevel ? DirectionEnum.Up : DirectionEnum.Down;
             }
         }
 
         public void Travel()
         {
+            // for efficient use of our lift 
+            // we service everyone in front of us in our direction of travel before changing direction
+
+            if (Lift.Disembark.Count == 0 && Lift.SummonsUp.Count == 0 && Lift.SummonsDown.Count == 0)
+            {
+                // idle
+                return;
+            }
             if (Lift.DoorsOpen)
             {
                 Lift.DoorsOpen = false;
             }
-            if (Lift.Stops.Count == 0)
+
+            if (Lift.CurrentDirection == DirectionEnum.Up)
             {
-                return;
+                TravelToNextStopUp();
+            }
+            else if (Lift.CurrentDirection == DirectionEnum.Down)
+            {
+                TravelToNextStopDown();
             }
 
-            // move to the first stop
-            Lift.CurrentLevel = Lift.Stops[0].Level;
-            var level = Lift.Levels[Lift.CurrentLevel];
+            // stopping going either direction services disembarks
             Lift.StopHistory.Enqueue(Lift.CurrentLevel);
+            Lift.Disembark.Remove(Lift.CurrentLevel);
 
-            // remove requests to stop here depending on direction
-            // and open the doors
-            var currentStop = Lift.Stops[0];
-            Lift.Stops.RemoveAt(0);
+            if (Lift.Disembark.Count == 0 && Lift.SummonsUp.Count == 0 && Lift.SummonsDown.Count == 0)
+            {
+                // idle
+                Lift.CurrentDirection = DirectionEnum.Any;
+            }
 
-            level.RequestDisembark = false;
-            if (currentStop.Direction == DirectionEnum.Up)
-            {
-                level.SummonedUp = false;
-            }
-            if (currentStop.Direction == DirectionEnum.Down)
-            {
-                level.SummonedDown = false;
-            }
             Lift.DoorsOpen = true;
         }
 
+        private void TravelToNextStopDown()
+        {
+            // travels to next down if any
+            // otherwise turns around for lowest up if any
+            // otherwise resets from top to travel down
+
+            // next level from down or disembark.  Remains at current level if no requests
+            var nextLevel = Lift.SummonsDown.Where(x => x < Lift.CurrentLevel)
+                .Union(Lift.Disembark.Where(x => x < Lift.CurrentLevel))
+                .DefaultIfEmpty(Lift.CurrentLevel)
+                .Max();
+
+            if (Lift.CurrentLevel == nextLevel)
+            {
+                // no more stops below current level 
+                if (Lift.SummonsUp.Count > 0 || Lift.Disembark.Count > 0)
+                {
+                    // travel to the lowest request for up or disembark, and turn around
+                    Lift.CurrentDirection = DirectionEnum.Up;
+                    Lift.CurrentLevel = Lift.SummonsUp.Union(Lift.Disembark).Max();
+                    Lift.SummonsUp.Remove(Lift.CurrentLevel);
+                }
+                else if (Lift.SummonsDown.Count > 0)
+                {
+                    // travel to the highest summons for down and start up again
+                    Lift.CurrentLevel = Lift.SummonsDown.Min();
+                    Lift.SummonsDown.Remove(Lift.CurrentLevel);
+                }
+            }
+            else
+            {
+                Lift.CurrentLevel = nextLevel;
+                Lift.SummonsDown.Remove(Lift.CurrentLevel);
+            }
+        }
+
+        private void TravelToNextStopUp()
+        {
+            // travels to next up if any
+            // otherwise turns around for highest down if any
+            // otherwise resets from bottom to travel up
+
+            // next level from up or disembark.  Remains at current level if no requests
+            var nextLevel = Lift.SummonsUp.Where(x => x > Lift.CurrentLevel)
+                .Union(Lift.Disembark.Where(x => x > Lift.CurrentLevel))
+                .DefaultIfEmpty(Lift.CurrentLevel)
+                .Min();
+
+            if (Lift.CurrentLevel == nextLevel)
+            {
+                // no more stops above current level 
+                if (Lift.SummonsDown.Count > 0 || Lift.Disembark.Count > 0)
+                {
+                    // travel to the highest request for down or disembark, and turn around
+                    Lift.CurrentDirection = DirectionEnum.Down;
+                    Lift.CurrentLevel = Lift.SummonsDown.Union(Lift.Disembark).Max();
+                    Lift.SummonsDown.Remove(Lift.CurrentLevel);
+                }
+                else if (Lift.SummonsUp.Count > 0)
+                {
+                    // travel to the lowest summons for up and start up again
+                    Lift.CurrentLevel = Lift.SummonsUp.Min();
+                    Lift.SummonsUp.Remove(Lift.CurrentLevel);
+                }
+            }
+            else
+            {
+                Lift.CurrentLevel = nextLevel;
+                Lift.SummonsUp.Remove(Lift.CurrentLevel);
+            }
+        }
     }
 }

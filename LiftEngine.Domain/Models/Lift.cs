@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using LiftEngine.Domain.Enums;
 using LiftEngine.Domain.Models;
 
 namespace LiftEngine.Domain.Models
@@ -8,7 +9,11 @@ namespace LiftEngine.Domain.Models
     {
         public Lift()
         {
-            Stops = new List<StopModel>();
+            SummonsDown = new HashSet<int>();
+            SummonsUp = new HashSet<int>();
+            Disembark = new HashSet<int>();
+
+            CurrentDirection = DirectionEnum.Any;
             StopHistory = new Queue<int>();
         }
 
@@ -31,10 +36,16 @@ namespace LiftEngine.Domain.Models
 
         // Levels (floors) in the building
         public Level[] Levels { get; }
-        public List<StopModel> Stops { get; }
+
+        public HashSet<int> SummonsUp { get; set; }
+        public HashSet<int> SummonsDown { get; set; }
+        public HashSet<int> Disembark { get; set; }
+
         public int CurrentLevel { get; set; }
+        public DirectionEnum CurrentDirection { get; set; }
         public bool DoorsOpen { get; set; }
 
         public Queue<int> StopHistory { get; set; }
+        public string StopHistoryDisplay => string.Join(",", StopHistory);
     }
 }
