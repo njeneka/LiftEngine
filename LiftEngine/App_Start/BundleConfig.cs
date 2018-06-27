@@ -24,9 +24,17 @@ namespace LiftEngine
                       "~/Scripts/bootstrap.js",
                       "~/Scripts/respond.js"));
 
+#if DEBUG
             bundles.Add(new ScriptBundle("~/bundles/react").Include(
                 "~/Scripts/react.js",
                 "~/Scripts/react-dom.js"));
+#else
+
+            bundles.Add(new ScriptBundle("~/bundles/react").Include(
+                "~/Scripts/react.min.js",
+                "~/Scripts/react-dom.min.js"));
+#endif
+
 
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
