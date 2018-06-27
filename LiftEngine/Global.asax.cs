@@ -16,8 +16,6 @@ namespace LiftEngine
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
-
-            HttpContext.Current.Application["Lift"] = new Lift(11);
         }
     }
 }

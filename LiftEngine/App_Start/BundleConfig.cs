@@ -37,7 +37,9 @@ namespace LiftEngine
 
             bundles.Add(new BabelBundle("~/bundles/liftjsx")
                 .Include("~/Scripts/jsx/lift.jsx")
-                .Include("~/Scripts/jsx/level.jsx"));
+                .Include("~/Scripts/jsx/levels.jsx")
+                .Include("~/Scripts/jsx/level.jsx")
+                .Include("~/Scripts/jsx/liftpanel.jsx"));
         }
     }
 }

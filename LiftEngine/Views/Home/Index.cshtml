@@ -6,7 +6,8 @@
 @Html.React("Lift", new
 {
     api=Url.HttpRouteUrl("DefaultApi", new {controller="Lift"}),
-    apiStops=Url.HttpRouteUrl("ApiChild", new {controller="Lift", child="Stops"})
+    apiStops=Url.HttpRouteUrl("ApiChild", new {controller="Lift", child="Stops"}),
+    apiTravel=Url.HttpRouteUrl("ApiChild", new {controller="Lift", child="Travel"})
 }, clientOnly: true) 
 
 @section scripts{

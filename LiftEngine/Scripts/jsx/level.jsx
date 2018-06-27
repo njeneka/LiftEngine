@@ -13,12 +13,12 @@
         return (
             <tr className="level">
                 <td>     
-                    <div className="summons">
+                    <div>
                     {this.props.allowUp === true &&       
                     (<div>
                         <button onClick={this.handleUp}
                                 className="btn btn-primary" 
-                                disabled={level.SummonedUp}>
+                                disabled={this.props.summonsUp === true}>
                             <span className="glyphicon glyphicon-chevron-up"/>
                         </button>
                     </div>)}
@@ -27,13 +27,13 @@
                     (<div>
                         <button onClick={this.handleDown}
                                 className="btn btn-primary" 
-                                disabled={level.SummonedDown}>
+                                disabled={this.props.summonsDown === true}>
                              <span className="glyphicon glyphicon-chevron-down"/>
-                         </button>
+                        </button>
                     </div>)}
                     </div>
                 </td>
-                <td ><div className="level-name">{level.Name}</div></td>
+                <td className={"level-name " + (this.props.isCurrentLevel === true ? "level-current" : "")}>{level.Name}</td>
             </tr>);
     }
 })

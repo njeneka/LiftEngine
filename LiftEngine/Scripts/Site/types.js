@@ -1,5 +1,5 @@
 ﻿directionEnum = {
-    Up: "Up",
-    Down: "Down",
-    Any: "Any"
+    Up: 1,
+    Down: -1,
+    Any: 0
 }

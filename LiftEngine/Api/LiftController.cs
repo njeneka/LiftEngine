@@ -27,5 +27,17 @@ namespace LiftEngine.Api
             return Ok();
         }
 
+        [HttpPost]
+        [Route("travel")]
+        public IHttpActionResult TravelToNextStop()
+        {
+            var lift = HttpContext.Current.Application["Lift"];
+            var liftService = new LiftService((Lift)lift);
+            liftService.Travel();
+
+            HttpContext.Current.Application["Lift"] = liftService.Lift;
+            return Ok();
+        }
+
     }
 }

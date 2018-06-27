@@ -231,6 +231,8 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Scripts\jsx\lift.jsx" />
     <Content Include="Scripts\jsx\level.jsx" />
+    <Content Include="Scripts\jsx\levels.jsx" />
+    <Content Include="Scripts\jsx\liftpanel.jsx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
