@@ -9,7 +9,7 @@ namespace LiftEngine.Domain.Services
     {
 
         public Lift Lift { get; }
-
+        
         public LiftService(Lift lift)
         {
             Lift = lift;
@@ -57,10 +57,10 @@ namespace LiftEngine.Domain.Services
             switch (stop.Direction)
             {
                 case DirectionEnum.Up:
-                    Lift.SummonsUp.Add(stop.Level);
+                    Lift.Levels[stop.Level].SummonsUp = true;
                     break;
                 case DirectionEnum.Down:
-                    Lift.SummonsDown.Add(stop.Level);
+                    Lift.Levels[stop.Level].SummonsDown = true;
                     break;
                 case DirectionEnum.Any:
                 default:
@@ -79,7 +79,7 @@ namespace LiftEngine.Domain.Services
             // for efficient use of our lift 
             // we service everyone in front of us in our direction of travel before changing direction
 
-            if (Lift.Disembark.Count == 0 && Lift.SummonsUp.Count == 0 && Lift.SummonsDown.Count == 0)
+            if (Lift.Disembark.Count == 0 && Lift.Levels.All(l => !l.SummonsUp && !l.SummonsDown))
             {
                 // idle
                 return;
@@ -102,7 +102,7 @@ namespace LiftEngine.Domain.Services
             Lift.StopHistory.Enqueue(Lift.CurrentLevel);
             Lift.Disembark.Remove(Lift.CurrentLevel);
 
-            if (Lift.Disembark.Count == 0 && Lift.SummonsUp.Count == 0 && Lift.SummonsDown.Count == 0)
+            if (Lift.Disembark.Count == 0 && Lift.Levels.All(l => !l.SummonsUp && !l.SummonsDown))
             {
                 // idle
                 Lift.CurrentDirection = DirectionEnum.Any;
@@ -110,6 +110,7 @@ namespace LiftEngine.Domain.Services
 
             Lift.DoorsOpen = true;
         }
+
 
         private void TravelToNextStopDown()
         {
@@ -126,24 +127,24 @@ namespace LiftEngine.Domain.Services
             if (Lift.CurrentLevel == nextLevel)
             {
                 // no more stops below current level 
-                if (Lift.SummonsUp.Count > 0 || Lift.Disembark.Count > 0)
+                if (Lift.Levels.Any(l => l.SummonsUp) || Lift.Disembark.Count > 0)
                 {
                     // travel to the lowest request for up or disembark, and turn around
                     Lift.CurrentDirection = DirectionEnum.Up;
                     Lift.CurrentLevel = Lift.SummonsUp.Union(Lift.Disembark).Max();
-                    Lift.SummonsUp.Remove(Lift.CurrentLevel);
+                    Lift.Levels[Lift.CurrentLevel].SummonsUp = false;
                 }
                 else if (Lift.SummonsDown.Count > 0)
                 {
                     // travel to the highest summons for down and start up again
                     Lift.CurrentLevel = Lift.SummonsDown.Min();
-                    Lift.SummonsDown.Remove(Lift.CurrentLevel);
+                    Lift.Levels[Lift.CurrentLevel].SummonsDown = false;
                 }
             }
             else
             {
                 Lift.CurrentLevel = nextLevel;
-                Lift.SummonsDown.Remove(Lift.CurrentLevel);
+                Lift.Levels[Lift.CurrentLevel].SummonsDown = false;
             }
         }
 
@@ -167,19 +168,19 @@ namespace LiftEngine.Domain.Services
                     // travel to the highest request for down or disembark, and turn around
                     Lift.CurrentDirection = DirectionEnum.Down;
                     Lift.CurrentLevel = Lift.SummonsDown.Union(Lift.Disembark).Max();
-                    Lift.SummonsDown.Remove(Lift.CurrentLevel);
+                    Lift.Levels[Lift.CurrentLevel].SummonsDown = false;
                 }
                 else if (Lift.SummonsUp.Count > 0)
                 {
                     // travel to the lowest summons for up and start up again
                     Lift.CurrentLevel = Lift.SummonsUp.Min();
-                    Lift.SummonsUp.Remove(Lift.CurrentLevel);
+                    Lift.Levels[Lift.CurrentLevel].SummonsUp = false;
                 }
             }
             else
             {
                 Lift.CurrentLevel = nextLevel;
-                Lift.SummonsUp.Remove(Lift.CurrentLevel);
+                Lift.Levels[Lift.CurrentLevel].SummonsUp = false;
             }
         }
     }

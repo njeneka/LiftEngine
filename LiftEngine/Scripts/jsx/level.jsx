@@ -18,7 +18,7 @@
                     (<div>
                         <button onClick={this.handleUp}
                                 className="btn btn-primary" 
-                                disabled={this.props.summonsUp === true}>
+                                disabled={level.SummonsUp === true}>
                             <span className="glyphicon glyphicon-chevron-up"/>
                         </button>
                     </div>)}
@@ -27,7 +27,7 @@
                     (<div>
                         <button onClick={this.handleDown}
                                 className="btn btn-primary" 
-                                disabled={this.props.summonsDown === true}>
+                                disabled={level.SummonsDown === true}>
                              <span className="glyphicon glyphicon-chevron-down"/>
                         </button>
                     </div>)}

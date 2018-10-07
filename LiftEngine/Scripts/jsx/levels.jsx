@@ -14,8 +14,6 @@
                 <Level key = { i }
                        levelNumber = { levelNumber }
                        data = { level }
-                       summonsUp = { this.props.summonsUp.includes(levelNumber) }
-                       summonsDown = { this.props.summonsDown.includes(levelNumber) }
                        allowUp = { i !== 0 }
                        allowDown = { i !== levelsTopToBottom.length - 1 }
                        isCurrentLevel = {this.props.currentLevel === levelNumber}

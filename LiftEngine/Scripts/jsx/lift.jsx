@@ -61,8 +61,6 @@
                     <h2>Building Levels</h2>
                     <Levels data = {this.state.data.Levels}
                             currentLevel = {this.state.data.CurrentLevel}
-                            summonsUp = {this.state.data.SummonsUp}
-                            summonsDown = {this.state.data.SummonsDown}
                             addStopFunc = { this.handleAddStop } />
                 </div>
                 <div className="col-sm-4"> 

@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Linq;
 using LiftEngine.Domain.Enums;
-using LiftEngine.Domain.Models;
 
 namespace LiftEngine.Domain.Models
 {
@@ -9,8 +8,6 @@ namespace LiftEngine.Domain.Models
     {
         public Lift()
         {
-            SummonsDown = new HashSet<int>();
-            SummonsUp = new HashSet<int>();
             Disembark = new HashSet<int>();
 
             CurrentDirection = DirectionEnum.Any;
@@ -37,8 +34,18 @@ namespace LiftEngine.Domain.Models
         // Levels (floors) in the building
         public Level[] Levels { get; }
 
-        public HashSet<int> SummonsUp { get; set; }
-        public HashSet<int> SummonsDown { get; set; }
+        // levels that have summonsed down
+        public HashSet<int> SummonsDown =>
+            new HashSet<int>(
+                Enumerable.Range(0, Levels.Length)
+                    .Where(i => Levels[i].SummonsDown));
+
+        // levels that have summonsed up
+        public HashSet<int> SummonsUp =>
+            new HashSet<int>(
+                Enumerable.Range(0, Levels.Length)
+                    .Where(i => Levels[i].SummonsUp));
+
         public HashSet<int> Disembark { get; set; }
 
         public int CurrentLevel { get; set; }
